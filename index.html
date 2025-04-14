@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Weekly Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --bg: #2e3440;
+        --text: #d8dee9;
+        --card-bg: #3b4252;
+        --highlight: #5e81ac;
+        --warning: #ebcb8b;
+        --button-bg: #88c0d0;
+        --button-hover: #81a1c1;
+        --bg-pattern: var(--highlight);
+      }
+      html.theme-dracula {
+        --bg: #282a36;
+        --text: #f8f8f2;
+        --card-bg: #44475a;
+        --highlight: #6272a4;
+        --warning: #f1fa8c;
+        --button-bg: #bd93f9;
+        --button-hover: #ff79c6;
+        --bg-pattern: var(--highlight);
+      }
+      html.theme-light {
+        --bg: #ffffff;
+        --text: #2e3440;
+        --card-bg: #f4f4f4;
+        --highlight: #81a1c1;
+        --warning: #d08770;
+        --button-bg: #88c0d0;
+        --button-hover: #81a1c1;
+        --bg-pattern: var(--highlight);
+      }
+
+      body {
+        background-color: var(--bg);
+        color: var(--text);
+      }
+      .theme-card {
+        background-color: var(--card-bg);
+      }
+      .theme-highlight {
+        background-color: var(--highlight);
+      }
+      .theme-warning {
+        background-color: var(--warning);
+      }
+      .theme-button {
+        background-color: var(--button-bg);
+        color: var(--bg);
+      }
+      .theme-button:hover {
+        background-color: var(--button-hover);
+      }
+
+      .entry-text:hover {
+        caret-color: white;
+        cursor: url("data:image/svg+xml;utf8,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Crect id='view-box' width='24' height='24' fill='none'/%3E%3Cpath id='Shape' d='M.75,17.5A.751.751,0,0,1,0,16.75V12.569a.755.755,0,0,1,.22-.53L11.461.8a2.72,2.72,0,0,1,3.848,0L16.7,2.191a2.72,2.72,0,0,1,0,3.848L5.462,17.28a.747.747,0,0,1-.531.22ZM1.5,12.879V16h3.12l7.91-7.91L9.41,4.97ZM13.591,7.03l2.051-2.051a1.223,1.223,0,0,0,0-1.727L14.249,1.858a1.222,1.222,0,0,0-1.727,0L10.47,3.91Z' transform='translate(3.25 3.25)' fill='%23ECEFF4'/%3E%3C/svg%3E")
+            0 16,
+          auto;
+      }
+      .hand-drawn-divider {
+        width: 100%;
+        height: 300px;
+        background-size: cover;
+        background-repeat: no-repeat;
+      }
+
+      select option {
+        background-color: var(--card-bg);
+        color: var(--text);
+      }
+
+      select {
+        background-color: transparent;
+        color: var(--text);
+      }
+    </style>
+  </head>
+  <body class="font-sans p-6 transition-colors duration-300 h-screen">
+    <!-- Theme Selector -->
+    <div
+      class="hand-drawn-divider absolute top-0 left-0 w-full h-screen z-0"
+    ></div>
+    <div class="relative z-10">
+      <div class="flex justify-end mb-4">
+        <select
+          id="themeSelect"
+          class="px-3 py-1 rounded border border-gray-400 text-sm bg-transparent text-[var(--text)]"
+        >
+          <option value="" class="bg-[var(--card-bg)] text-[var(--text)]">
+            Nord
+          </option>
+          <option
+            value="theme-dracula"
+            class="bg-[var(--card-bg)] text-[var(--text)]"
+          >
+            Dracula
+          </option>
+          <option
+            value="theme-light"
+            class="bg-[var(--card-bg)] text-[var(--text)]"
+          >
+            Light
+          </option>
+        </select>
+      </div>
+
+      <!-- Main Container -->
+      <div
+        class="max-w-xl mx-auto theme-card shadow-md rounded-lg p-6 space-y-6"
+      >
+        <h1 class="text-2xl font-bold text-[var(--text)]">
+          Weekly Log Entries
+        </h1>
+
+        <div id="output" class="overflow-auto h-[400px] space-y-2"></div>
+
+        <form id="entryForm" class="flex space-x-2">
+          <input
+            type="text"
+            id="entry"
+            placeholder="Add new entry"
+            required
+            class="flex-grow border border-[var(--highlight)] rounded px-3 py-2 bg-[var(--bg)] text-[var(--text)] placeholder-gray-400"
+          />
+          <button type="submit" class="theme-button px-4 py-2 rounded">
+            Add Entry
+          </button>
+        </form>
+
+        <button
+          id="saveBtn"
+          class="w-full theme-button px-4 py-2 rounded hidden"
+        >
+          Save Updated Config
+        </button>
+      </div>
+      <script src="entries.js"></script>
+      <script>
+        let entries = window.entries || [];
+
+        const output = document.getElementById("output");
+
+        function updateSvgBackground() {
+          // Get the current theme color value without any spaces
+          const bgPatternColor = getComputedStyle(document.documentElement)
+            .getPropertyValue("--bg-pattern")
+            .trim();
+          console.log(bgPatternColor);
+
+          // Create the SVG with the current color
+          const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100"><g fill="${bgPatternColor}"><path d="M0 1v99c134.3 0 153.7-99 296-99H0Z" opacity=".5"></path><path d="M1000 4v86C833.3 90 833.3 3.6 666.7 3.6S500 90 333.3 90 166.7 4 0 4h1000Z" opacity=".5"></path><path d="M617 1v86C372 119 384 1 196 1h421Z" opacity=".5"></path><path d="M1000 0H0v52C62.5 28 125 4 250 4c250 0 250 96 500 96 125 0 187.5-24 250-48V0Z"></path></g></svg>`;
+
+          // Create properly encoded data URL
+          const encodedSvg = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+            svgContent
+          )}")`;
+
+          // Apply to the element
+          document.querySelector(".hand-drawn-divider").style.backgroundImage =
+            encodedSvg;
+        }
+
+        // Make sure the function runs on page load
+        document.addEventListener("DOMContentLoaded", updateSvgBackground);
+
+        // Update the theme selector event listener
+        document
+          .getElementById("themeSelect")
+          .addEventListener("change", function () {
+            document.body.className = `font-sans p-6 transition-colors duration-300 ${this.value} h-screen`;
+            renderEntries();
+
+            // Important: Need to wait a tiny bit for CSS variables to update before updating the SVG
+            setTimeout(updateSvgBackground, 50);
+          });
+
+        // Call on page load
+        document.addEventListener("DOMContentLoaded", updateSvgBackground);
+
+        function updateFile(action) {
+          fetch("/save-entries", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(entries),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success) {
+                entries.forEach((e) => (e.saved = true));
+                switch (action) {
+                  case "edit":
+                    alert("Entry updated!");
+                    break;
+                  case "create":
+                    alert("Entry created!");
+                    break;
+                  case "delete":
+                    alert("Entry deleted!");
+                    break;
+                }
+              } else {
+                alert("Error modifying entrie(s).");
+              }
+              renderEntries();
+            });
+        }
+
+        function renderEntries() {
+          output.innerHTML = "";
+          entries.forEach((x, index) => {
+            const div = document.createElement("div");
+            div.className = `p-2 border border-[var(--highlight)] rounded ${
+              x.saved ? "bg-[var(--bg)]" : "bg-[var(--warning)]"
+            }`;
+
+            // Entry text or input
+            const entryText = document.createElement("div");
+            entryText.className = `entry-text whitespace-pre-wrap break-words text-[var(--text)] cursor-pointer ${
+              x.saved ? "bg-[var(--bg)]" : "bg-[var(--warning)]"
+            }`;
+            entryText.textContent = x.entry;
+
+            entryText.onclick = () => {
+              const input = document.createElement("input");
+              input.type = "text";
+              input.value = x.entry;
+              input.className = `w-full px-2 py-1 rounded bg-[var(--bg)] text-[var(--text)] border border-[#4c566a]`;
+              entryText.replaceWith(input);
+              input.focus();
+
+              let alreadySaved = false;
+
+              input.onblur = () => {
+                if (!alreadySaved) {
+                  saveEdit();
+                }
+              };
+
+              input.onkeydown = (e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  saveEdit();
+                }
+              };
+
+              function saveEdit() {
+                alreadySaved = true;
+                x.entry = input.value.trim();
+                updateFile("edit");
+              }
+            };
+
+            // Bottom row: timestamp + delete
+            const bottomRow = document.createElement("div");
+            bottomRow.className = "flex justify-between items-center mt-2";
+
+            const timestamp = document.createElement("span");
+            timestamp.textContent = new Date(x.time).toLocaleString();
+            timestamp.className = "text-xs text-[var(--text)]";
+
+            const remove = document.createElement("button");
+            remove.textContent = "X";
+            remove.className =
+              "ml-4 bg-[#bf616a] text-white px-2.5 py-1 rounded hover:bg-red-600";
+            remove.onclick = () => removeEntry(index);
+
+            bottomRow.appendChild(timestamp);
+            bottomRow.appendChild(remove);
+
+            div.appendChild(entryText);
+            div.appendChild(bottomRow);
+            output.appendChild(div);
+          });
+        }
+
+        function removeEntry(index) {
+          entries.splice(index, 1);
+          updateFile("delete");
+        }
+
+        document
+          .getElementById("entryForm")
+          .addEventListener("submit", function (e) {
+            e.preventDefault();
+            const value = document.getElementById("entry").value.trim();
+            if (value) {
+              entries.push({
+                entry: value,
+                time: new Date().toISOString(),
+                saved: true,
+              });
+              renderEntries();
+              document.getElementById("entry").value = "";
+              updateFile("create");
+            }
+          });
+
+        document
+          .getElementById("themeSelect")
+          .addEventListener("change", function () {
+            document.body.className = `font-sans p-6 transition-colors duration-300 ${this.value}`;
+            renderEntries();
+          });
+
+        renderEntries();
+
+        // Update the theme selector event listener to also log variables
+        document
+          .getElementById("themeSelect")
+          .addEventListener("change", function () {
+            const themeName = this.value;
+
+            // Remove any existing theme classes from documentElement (html tag)
+            document.documentElement.classList.remove(
+              "theme-dracula",
+              "theme-light"
+            );
+
+            // Add the new theme class if one was selected
+            if (themeName) {
+              document.documentElement.classList.add(themeName);
+            }
+
+            // Keep your existing body classes without the theme
+            document.body.className =
+              "font-sans p-6 transition-colors duration-300 h-screen";
+
+            // For debugging - log the variable values
+
+            renderEntries();
+            setTimeout(updateSvgBackground, 50);
+          });
+      </script>
+    </div>
+  </body>
+</html>
